@@ -17,11 +17,17 @@ class MainViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.dataSource = self
+        tableView.delegate = self
         moviesManager.parseJson { (data) in
             self.dict = data.results
             DispatchQueue.main.async {
                 self.tableView.reloadData()
             }
+        }
+    }
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "movieCardSegue" {
+            let secondVC = segue.destination as! MovieCardViewController
         }
     }
 }
@@ -44,6 +50,12 @@ extension MainViewController: UITableViewDataSource {
         }
 
         return cell
+    }
+}
+
+extension MainViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        self.performSegue(withIdentifier: "movieCardSegue", sender: self)
     }
 }
 
