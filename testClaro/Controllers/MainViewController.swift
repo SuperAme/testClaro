@@ -31,8 +31,18 @@ extension MainViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = dict[indexPath.row].title
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! MoviesTableViewCell
+        cell.titleLabel.text = dict[indexPath.row].title
+        cell.dateLabel.text = dict[indexPath.row].release_date
+        if let url = URL(string: "\(Constants.imageURL)\(dict[indexPath.row].poster_path!)" ?? "") {
+            
+            if let data = try? Data(contentsOf: url) {
+                DispatchQueue.main.async {
+                    cell.moviesImage.image = UIImage(data: data)
+                }
+            }
+        }
+
         return cell
     }
 }
