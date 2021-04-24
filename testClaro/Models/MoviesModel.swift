@@ -15,4 +15,6 @@ struct Results: Codable {
     let poster_path: String?
     let title: String?
     let release_date: String?
+    let overview: String?
+    let vote_average: Float?
 }

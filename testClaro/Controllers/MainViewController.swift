@@ -11,6 +11,11 @@ class MainViewController: UIViewController {
     
     var dict = [Results]()
     let moviesManager = MoviesManager()
+    var titleToSend: String?
+    var descrToSend: String?
+    var dateToSend: String?
+    var ratingToSend: Float?
+    var imageUrlToSend: String?
 
     @IBOutlet weak var tableView: UITableView!
     
@@ -28,6 +33,11 @@ class MainViewController: UIViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "movieCardSegue" {
             let secondVC = segue.destination as! MovieCardViewController
+            secondVC.titleValue = titleToSend
+            secondVC.descrValue = descrToSend
+            secondVC.date = dateToSend
+            secondVC.rating = ratingToSend
+            secondVC.imageValue = imageUrlToSend
         }
     }
 }
@@ -55,6 +65,11 @@ extension MainViewController: UITableViewDataSource {
 
 extension MainViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        titleToSend = dict[indexPath.row].title
+        descrToSend = dict[indexPath.row].overview
+        dateToSend = dict[indexPath.row].release_date
+        ratingToSend = dict[indexPath.row].vote_average
+        imageUrlToSend = dict[indexPath.row].poster_path
         self.performSegue(withIdentifier: "movieCardSegue", sender: self)
     }
 }
