@@ -16,6 +16,8 @@ class MainViewController: UIViewController {
     var dateToSend: String?
     var ratingToSend: Float?
     var imageUrlToSend: String?
+    let userDefaults = UserDefaults.standard
+    var dateFromUserDefaults = ""
     
     @IBOutlet weak var tableView: UITableView!
     
@@ -23,7 +25,17 @@ class MainViewController: UIViewController {
         super.viewDidLoad()
         tableView.dataSource = self
         tableView.delegate = self
-        getDates()
+//        getDates()
+        if let dataFromUserDefaults = userDefaults.string(forKey: "DateService") {
+            dateFromUserDefaults = dataFromUserDefaults
+            print("no soy vacio :)")
+            print("dtf\(dateFromUserDefaults)")
+        } else {
+            var getDate = getDates()
+            userDefaults.setValue(getDate, forKey: "DateService")
+            print("soy vacio :(")
+        }
+    
         moviesManager.parseJson { (data) in
             self.dict = data.results
             
@@ -34,7 +46,7 @@ class MainViewController: UIViewController {
         }
     }
     
-    func getDates() {
+    func getDates() -> String {
         var currentDate = Date()
          
         // 1) Create a DateFormatter() object.
@@ -47,21 +59,33 @@ class MainViewController: UIViewController {
         format.dateFormat = "dd/MM/yyyy HH:mm:ss"
          
         // 4) Set the current date, altered by timezone.
-        var firstDateString = format.string(from: currentDate)
-        var secondDateString = format.string(from: Date().addingTimeInterval(86400))
+//        var firstDateString = format.string(from: currentDate)
+        var dateString = format.string(from: Date().addingTimeInterval(86400))
+        
+        return dateString
         
         // 5) Convert to date
-        guard let firstDate = format.date(from: firstDateString) else {
-            print("errot formating firstDate \(firstDateString)")
-            return
-        }
-        guard let secondDate = format.date(from: secondDateString) else {
-            print("errot formating firstDate \(secondDateString)")
-            return
-        }
+//        guard let firstDate = format.date(from: firstDateString) else {
+//            print("errot formating firstDate \(firstDateString)")
+//            return
+//        }
+//        guard let secondDate = format.date(from: secondDateString) else {
+//            print("errot formating firstDate \(secondDateString)")
+//            return
+//        }
         
-        print("firstDate\(firstDate)")
-        print("seconDate\(secondDate)")
+//        print(firstDate)
+//        print(secondDate)
+        // 6) Compare dates
+//
+//        let isDescending = firstDate.compare(secondDate) == ComparisonResult.orderedDescending
+//        print("orderedDescending: \(isDescending)")
+//
+//        let isAscending = firstDate.compare(secondDate) == ComparisonResult.orderedAscending
+//        print("orderedAscending: \(isAscending)")
+//
+//        let isSame = firstDate.compare(secondDate) == ComparisonResult.orderedSame
+//        print("orderedSame: \(isSame)")
 
     }
     
@@ -106,13 +130,6 @@ extension MainViewController: UITableViewDelegate {
         ratingToSend = dict[indexPath.row].vote_average
         imageUrlToSend = dict[indexPath.row].poster_path
         self.performSegue(withIdentifier: "movieCardSegue", sender: self)
-    }
-}
-extension String {
-    func toDate() -> Date? {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd/MM/yyyy hh:mm:ss"
-        return formatter.date(from: self)
     }
 }
 
