@@ -16,20 +16,55 @@ class MainViewController: UIViewController {
     var dateToSend: String?
     var ratingToSend: Float?
     var imageUrlToSend: String?
-
+    
     @IBOutlet weak var tableView: UITableView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.dataSource = self
         tableView.delegate = self
+        getDates()
         moviesManager.parseJson { (data) in
             self.dict = data.results
+            
             DispatchQueue.main.async {
                 self.tableView.reloadData()
             }
+            var subArray = self.dict[0...9]
         }
     }
+    
+    func getDates() {
+        var currentDate = Date()
+         
+        // 1) Create a DateFormatter() object.
+        let format = DateFormatter()
+         
+        // 2) Set the current timezone to .current, or America/Chicago.
+        format.timeZone = .current
+         
+        // 3) Set the format of the altered date.
+        format.dateFormat = "dd/MM/yyyy HH:mm:ss"
+         
+        // 4) Set the current date, altered by timezone.
+        var firstDateString = format.string(from: currentDate)
+        var secondDateString = format.string(from: Date().addingTimeInterval(86400))
+        
+        // 5) Convert to date
+        guard let firstDate = format.date(from: firstDateString) else {
+            print("errot formating firstDate \(firstDateString)")
+            return
+        }
+        guard let secondDate = format.date(from: secondDateString) else {
+            print("errot formating firstDate \(secondDateString)")
+            return
+        }
+        
+        print("firstDate\(firstDate)")
+        print("seconDate\(secondDate)")
+
+    }
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "movieCardSegue" {
             let secondVC = segue.destination as! MovieCardViewController
@@ -71,6 +106,13 @@ extension MainViewController: UITableViewDelegate {
         ratingToSend = dict[indexPath.row].vote_average
         imageUrlToSend = dict[indexPath.row].poster_path
         self.performSegue(withIdentifier: "movieCardSegue", sender: self)
+    }
+}
+extension String {
+    func toDate() -> Date? {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yyyy hh:mm:ss"
+        return formatter.date(from: self)
     }
 }
 
