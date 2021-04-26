@@ -25,6 +25,7 @@ class MovieCardViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        title = "iOS Test"
         if let url = URL(string: "\(Constants.imageURL)\(imageValue!)" ?? "") {
             print(url)
             if let data = try? Data(contentsOf: url) {

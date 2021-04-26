@@ -25,7 +25,12 @@ class MainViewController: UIViewController {
         super.viewDidLoad()
         tableView.dataSource = self
         tableView.delegate = self
-        
+        title = "iOS Test"
+        var defaultDate = Date()
+        let format = DateFormatter()
+        format.timeZone = .current
+        format.dateFormat = "dd-MM-yyyy HH:mm:ss"
+        var currentDate = format.string(from: defaultDate.addingTimeInterval(86400))
         //Logic to know if make the request or check the user defaults//
         
         if let dataFromUserDefaults = userDefaults.string(forKey: "DateService") {
@@ -40,6 +45,7 @@ class MainViewController: UIViewController {
                         self.subDict.append([i.title!,i.overview!,i.poster_path!,i.release_date!,"\(i.vote_average!)"])
                     }
                     self.userDefaults.setValue(self.subDict, forKey: "Movies")
+                    self.userDefaults.setValue(currentDate, forKey: "DateService")
                     DispatchQueue.main.async {
                         self.tableView.reloadData()
                     }
@@ -53,12 +59,6 @@ class MainViewController: UIViewController {
         } else {
             
             //Do the request only the first time the user open the app//
-            
-            var defaultDate = Date()
-            let format = DateFormatter()
-            format.timeZone = .current
-            format.dateFormat = "dd-MM-yyyy HH:mm:ss"
-            var currentDate = format.string(from: defaultDate.addingTimeInterval(86400))
             
             moviesManager.parseJson { (data) in
                 //create new dictionary to save data in userDefaults
