@@ -7,9 +7,6 @@
 
 import UIKit
 
-protocol MyDelegate{
-     func didFetchData(data:[Results])
-}
 class MainViewController: UIViewController {
     
     var dict = [Results]()
@@ -29,22 +26,27 @@ class MainViewController: UIViewController {
         super.viewDidLoad()
         tableView.dataSource = self
         tableView.delegate = self
-//        getDates()
         
         if let dataFromUserDefaults = userDefaults.string(forKey: "DateService") {
             dateFromUserDefaults = dataFromUserDefaults
-            
-//            print("no soy vacio :)")
-//            print("dtf\(dateFromUserDefaults)")
+            var x = getDate(dateUserDfs: dataFromUserDefaults)
+            print(x)
+            //si es true consumir servicio y actualizar datos
+            //si no pintar datos del userdefaults
         } else {
-            var getDate = getDates()
-            userDefaults.setValue(getDate, forKey: "DateService")
+            var defaultDate = Date()
+            let format = DateFormatter()
+            format.timeZone = .current
+            format.dateFormat = "dd-MM-yyyy HH:mm:ss"
+            var currentDate = format.string(from: defaultDate.addingTimeInterval(86400))
+            
+            userDefaults.setValue(currentDate, forKey: "DateService")
             moviesManager.parseJson { (data) in
                 self.dict = data.results
                 DispatchQueue.main.async {
                     self.tableView.reloadData()
                 }
-                //create aneew dictionary to save data in userDefaults
+                //create new dictionary to save data in userDefaults
                 
                 for i in data.results {
                     self.subDict.append([i.title!,i.overview!,i.poster_path!,i.release_date!,i.vote_average!])
@@ -52,51 +54,32 @@ class MainViewController: UIViewController {
                 self.userDefaults.setValue(self.subDict, forKey: "Movies")
             }
         }
-    
+        
         
     }
     
-    func getDates() -> String {
-        var currentDate = Date()
-         
-        // 1) Create a DateFormatter() object.
-        let format = DateFormatter()
-         
-        // 2) Set the current timezone to .current, or America/Chicago.
-        format.timeZone = .current
-         
-        // 3) Set the format of the altered date.
-        format.dateFormat = "dd/MM/yyyy HH:mm:ss"
-         
-        // 4) Set the current date, altered by timezone.
-//        var firstDateString = format.string(from: currentDate)
-        var dateString = format.string(from: Date().addingTimeInterval(86400))
-        
-        return dateString
-        
-        // 5) Convert to date
-//        guard let firstDate = format.date(from: firstDateString) else {
-//            print("errot formating firstDate \(firstDateString)")
-//            return
-//        }
-//        guard let secondDate = format.date(from: secondDateString) else {
-//            print("errot formating firstDate \(secondDateString)")
-//            return
-//        }
-        
-//        print(firstDate)
-//        print(secondDate)
-        // 6) Compare dates
-//
-//        let isDescending = firstDate.compare(secondDate) == ComparisonResult.orderedDescending
-//        print("orderedDescending: \(isDescending)")
-//
-//        let isAscending = firstDate.compare(secondDate) == ComparisonResult.orderedAscending
-//        print("orderedAscending: \(isAscending)")
-//
-//        let isSame = firstDate.compare(secondDate) == ComparisonResult.orderedSame
-//        print("orderedSame: \(isSame)")
-
+    func getDate(dateUserDfs: String) -> Bool {
+        //get CurrentDate
+        let date = Date()
+        var result = false
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd-MM-yyyy HH:mm:ss"
+        let dateFromServer = dateFormatter.string(from: date)
+        let currentDate = dateFormatter.date(from: dateFromServer)?.addingTimeInterval(-18000)
+        //get DateFromUserDefaults
+        let dateFromUserDfsToDate = dateFormatter.date(from: dateUserDfs)?.addingTimeInterval(-18000)
+        print("currentDate\(currentDate)")
+        print(dateFromUserDfsToDate)
+        //Compare Dates
+        if (currentDate != nil && dateFromUserDfsToDate != nil) {
+            var secondsInterval = (dateFromUserDfsToDate?.timeIntervalSince(currentDate!))!
+            if secondsInterval <= 0.0 {
+                result = true
+            } else {
+                result = false
+            }
+        }
+        return result
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -127,7 +110,7 @@ extension MainViewController: UITableViewDataSource {
                 }
             }
         }
-
+        
         return cell
     }
 }
