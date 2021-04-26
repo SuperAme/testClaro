@@ -7,9 +7,13 @@
 
 import UIKit
 
+protocol MyDelegate{
+     func didFetchData(data:[Results])
+}
 class MainViewController: UIViewController {
     
     var dict = [Results]()
+    var subDict = [[Any]]()
     let moviesManager = MoviesManager()
     var titleToSend: String?
     var descrToSend: String?
@@ -26,24 +30,30 @@ class MainViewController: UIViewController {
         tableView.dataSource = self
         tableView.delegate = self
 //        getDates()
+        
         if let dataFromUserDefaults = userDefaults.string(forKey: "DateService") {
             dateFromUserDefaults = dataFromUserDefaults
-            print("no soy vacio :)")
-            print("dtf\(dateFromUserDefaults)")
+            
+//            print("no soy vacio :)")
+//            print("dtf\(dateFromUserDefaults)")
         } else {
             var getDate = getDates()
             userDefaults.setValue(getDate, forKey: "DateService")
-            print("soy vacio :(")
+            moviesManager.parseJson { (data) in
+                self.dict = data.results
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                }
+                //create aneew dictionary to save data in userDefaults
+                
+                for i in data.results {
+                    self.subDict.append([i.title!,i.overview!,i.poster_path!,i.release_date!,i.vote_average!])
+                }
+                self.userDefaults.setValue(self.subDict, forKey: "Movies")
+            }
         }
     
-        moviesManager.parseJson { (data) in
-            self.dict = data.results
-            
-            DispatchQueue.main.async {
-                self.tableView.reloadData()
-            }
-            var subArray = self.dict[0...9]
-        }
+        
     }
     
     func getDates() -> String {
