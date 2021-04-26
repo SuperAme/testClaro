@@ -9,7 +9,6 @@ import UIKit
 
 class MainViewController: UIViewController {
     
-    var dict = [Results]()
     var subDict = [[String]]()
     let moviesManager = MoviesManager()
     var titleToSend: String?
@@ -27,24 +26,34 @@ class MainViewController: UIViewController {
         tableView.dataSource = self
         tableView.delegate = self
         
+        //Logic to know if make the request or check the user defaults//
+        
         if let dataFromUserDefaults = userDefaults.string(forKey: "DateService") {
             dateFromUserDefaults = dataFromUserDefaults
             var comparisionDates = getDate(dateUserDfs: dataFromUserDefaults)
+            
+            //if it has been 24 hours make the request again and update value
             
             if (comparisionDates == true) {
                 moviesManager.parseJson { (data) in
                     for i in data.results {
                         self.subDict.append([i.title!,i.overview!,i.poster_path!,i.release_date!,"\(i.vote_average!)"])
                     }
+                    self.userDefaults.setValue(self.subDict, forKey: "Movies")
                     DispatchQueue.main.async {
                         self.tableView.reloadData()
                     }
                 }
             } else {
+                //read array in user defaults//
+                
                 subDict = userDefaults.array(forKey: "Movies") as! [[String]]
             }
             
         } else {
+            
+            //Do the request only the first time the user open the app//
+            
             var defaultDate = Date()
             let format = DateFormatter()
             format.timeZone = .current
@@ -52,7 +61,6 @@ class MainViewController: UIViewController {
             var currentDate = format.string(from: defaultDate.addingTimeInterval(86400))
             
             moviesManager.parseJson { (data) in
-                self.dict = data.results
                 //create new dictionary to save data in userDefaults
                 
                 for i in data.results {
@@ -69,18 +77,15 @@ class MainViewController: UIViewController {
     }
     
     func getDate(dateUserDfs: String) -> Bool {
-        //get CurrentDate
         let date = Date()
         var result = false
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd-MM-yyyy HH:mm:ss"
         let dateFromServer = dateFormatter.string(from: date)
         let currentDate = dateFormatter.date(from: dateFromServer)?.addingTimeInterval(-18000)
-        //get DateFromUserDefaults
         let dateFromUserDfsToDate = dateFormatter.date(from: dateUserDfs)?.addingTimeInterval(-18000)
-        print("currentDate\(currentDate)")
-        print(dateFromUserDfsToDate)
         //Compare Dates
+        
         if (currentDate != nil && dateFromUserDfsToDate != nil) {
             var secondsInterval = (dateFromUserDfsToDate?.timeIntervalSince(currentDate!))!
             if secondsInterval <= 0.0 {
