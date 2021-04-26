@@ -10,12 +10,12 @@ import UIKit
 class MainViewController: UIViewController {
     
     var dict = [Results]()
-    var subDict = [[Any]]()
+    var subDict = [[String]]()
     let moviesManager = MoviesManager()
     var titleToSend: String?
     var descrToSend: String?
     var dateToSend: String?
-    var ratingToSend: Float?
+    var ratingToSend: String?
     var imageUrlToSend: String?
     let userDefaults = UserDefaults.standard
     var dateFromUserDefaults = ""
@@ -29,10 +29,21 @@ class MainViewController: UIViewController {
         
         if let dataFromUserDefaults = userDefaults.string(forKey: "DateService") {
             dateFromUserDefaults = dataFromUserDefaults
-            var x = getDate(dateUserDfs: dataFromUserDefaults)
-            print(x)
-            //si es true consumir servicio y actualizar datos
-            //si no pintar datos del userdefaults
+            var comparisionDates = getDate(dateUserDfs: dataFromUserDefaults)
+            
+            if (comparisionDates == true) {
+                moviesManager.parseJson { (data) in
+                    for i in data.results {
+                        self.subDict.append([i.title!,i.overview!,i.poster_path!,i.release_date!,"\(i.vote_average!)"])
+                    }
+                    DispatchQueue.main.async {
+                        self.tableView.reloadData()
+                    }
+                }
+            } else {
+                subDict = userDefaults.array(forKey: "Movies") as! [[String]]
+            }
+            
         } else {
             var defaultDate = Date()
             let format = DateFormatter()
@@ -40,21 +51,20 @@ class MainViewController: UIViewController {
             format.dateFormat = "dd-MM-yyyy HH:mm:ss"
             var currentDate = format.string(from: defaultDate.addingTimeInterval(86400))
             
-            userDefaults.setValue(currentDate, forKey: "DateService")
             moviesManager.parseJson { (data) in
                 self.dict = data.results
-                DispatchQueue.main.async {
-                    self.tableView.reloadData()
-                }
                 //create new dictionary to save data in userDefaults
                 
                 for i in data.results {
-                    self.subDict.append([i.title!,i.overview!,i.poster_path!,i.release_date!,i.vote_average!])
+                    self.subDict.append([i.title!,i.overview!,i.poster_path!,i.release_date!,"\(i.vote_average!)"])
                 }
                 self.userDefaults.setValue(self.subDict, forKey: "Movies")
+                DispatchQueue.main.async {
+                    self.tableView.reloadData()
+                }
             }
+            userDefaults.setValue(currentDate, forKey: "DateService")
         }
-        
         
     }
     
@@ -95,14 +105,14 @@ class MainViewController: UIViewController {
 }
 extension MainViewController: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return dict.count - 10
+        return subDict.count - 10
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath) as! MoviesTableViewCell
-        cell.titleLabel.text = dict[indexPath.row].title
-        cell.dateLabel.text = dict[indexPath.row].release_date
-        if let url = URL(string: "\(Constants.imageURL)\(dict[indexPath.row].poster_path!)" ?? "") {
+        cell.titleLabel.text = subDict[indexPath.row][0]
+        cell.dateLabel.text = subDict[indexPath.row][3]
+        if let url = URL(string: "\(Constants.imageURL)\(subDict[indexPath.row][2])" ?? "") {
             
             if let data = try? Data(contentsOf: url) {
                 DispatchQueue.main.async {
@@ -112,16 +122,17 @@ extension MainViewController: UITableViewDataSource {
         }
         
         return cell
+          
     }
 }
 
 extension MainViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        titleToSend = dict[indexPath.row].title
-        descrToSend = dict[indexPath.row].overview
-        dateToSend = dict[indexPath.row].release_date
-        ratingToSend = dict[indexPath.row].vote_average
-        imageUrlToSend = dict[indexPath.row].poster_path
+        titleToSend = subDict[indexPath.row][0]
+        descrToSend = subDict[indexPath.row][1]
+        dateToSend = subDict[indexPath.row][3]
+        ratingToSend = subDict[indexPath.row][4]
+        imageUrlToSend = subDict[indexPath.row][2]
         self.performSegue(withIdentifier: "movieCardSegue", sender: self)
     }
 }

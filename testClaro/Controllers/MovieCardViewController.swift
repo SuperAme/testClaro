@@ -14,7 +14,7 @@ class MovieCardViewController: UIViewController {
     var titleValue: String?
     var descrValue: String?
     var date: String?
-    var rating: Float?
+    var rating: String?
     
     
     @IBOutlet weak var imageCard: UIImageView!
